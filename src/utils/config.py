@@ -18,7 +18,7 @@ OUTPUTS_DIR.mkdir(exist_ok=True)
 
 class PipelineSettings(BaseModel):
     input_csv: str = "binance_dump_with_valid_volumes_arbitrage_free.csv"
-    output_csv: str = "binance_dump_with_sabr_preds_accurate.csv"
+    output_csv: str = "bs-default_params.csv"
     risk_free_rate: float = 0.0
     epsilon: float = 1e-8
 
@@ -30,7 +30,7 @@ class BlackScholesSettings(BaseModel):
     sigma_min: float = 0.001
     sigma_max: float = 100.0
     points_initial: int = 10000
-    points_calibrate: int = 100
+    points_calibrate: int = 1000
     max_refines_initial: int = 100
     max_refines_calibrate: int = 10
 
