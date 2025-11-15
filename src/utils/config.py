@@ -13,23 +13,41 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 INPUTS_DIR = DATA_DIR / "inputs"
 OUTPUTS_DIR = DATA_DIR / "outputs"
+OUTPUTS_DIR.mkdir(exist_ok=True)
 
 
 class PipelineSettings(BaseModel):
     input_csv: str = "binance_dump_with_valid_volumes_arbitrage_free.csv"
-    output_csv: str = "binance_dump_with_models_preds_inaccurate.csv"
+    output_csv: str = "binance_dump_with_sabr_preds_accurate.csv"
     risk_free_rate: float = 0.0
+    epsilon: float = 1e-8
 
 
 class BlackScholesSettings(BaseModel):
     refine_factor: int = 5
-    epsilon: float = 1e-8
     radius: float = 0.02
     radius_calibrate_factor: float = 2.0
     sigma_min: float = 0.001
     sigma_max: float = 100.0
     points_initial: int = 10000
-    points_calibrate: int = 1000
+    points_calibrate: int = 100
+    max_refines_initial: int = 100
+    max_refines_calibrate: int = 10
+
+
+class SABRSettings(BaseModel):
+    refine_factor: int = 5
+    radius: float = 0.02
+    radius_calibrate_factor: float = 2.0
+    alpha_min: float = 0.001
+    alpha_max: float = 100.0
+    rho_min: float = -0.999
+    rho_max: float = 0.999
+    nu_min: float = 0.001
+    nu_max: float = 100.0
+    beta: float = 0.5
+    points_initial: int = 10
+    points_calibrate: int = 10
     max_refines_initial: int = 100
     max_refines_calibrate: int = 10
 
@@ -37,6 +55,7 @@ class BlackScholesSettings(BaseModel):
 class GlobalSettings(BaseModel):
     ppl: PipelineSettings = PipelineSettings()
     bs: BlackScholesSettings = BlackScholesSettings()
+    sabr: SABRSettings = SABRSettings()
 
 
 settings = GlobalSettings()

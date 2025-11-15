@@ -1,6 +1,7 @@
 import pandas as pd
 from tqdm import tqdm
 from src.black_sholes.model import BlackScholes
+from src.sabr.model import SABR
 from src.utils.helpers import add_nan_columns
 from src.utils.config import settings, INPUTS_DIR, OUTPUTS_DIR
 
@@ -8,7 +9,7 @@ from src.utils.config import settings, INPUTS_DIR, OUTPUTS_DIR
 def run_pipeline():
     df = pd.read_csv(INPUTS_DIR / settings.ppl.input_csv).reset_index(drop=True)
     groups = [g for _, g in df.groupby("current_time")]
-    results, model_bs = [], None
+    results, model_bs, model_sabr = [], None, None
 
     with tqdm(total=max(0, len(groups) - 1), desc="Overall progress") as pbar:
         for i in range(len(groups) - 1):
@@ -19,8 +20,14 @@ def run_pipeline():
                 model_bs.find_initial_params(current)
             else:
                 model_bs.calibrate(current)
-
             nxt["close_bs"] = model_bs.price(nxt)
+
+            # if model_sabr is None:
+            #     model_sabr = SABR()
+            #     model_sabr.find_initial_params(current)
+            # else:
+            #     model_sabr.calibrate(current)
+            # nxt["close_sabr"] = model_sabr.price(nxt)
 
             results.append(nxt)
             pbar.update(1)

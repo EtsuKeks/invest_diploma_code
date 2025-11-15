@@ -6,4 +6,4 @@
 .vscode
 lint.sh
 pyproject.toml
-data/output/
+data/outputs/
