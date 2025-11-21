@@ -1,6 +1,7 @@
 import numpy as np
+
+from src.models.black_sholes import norm_cdf, normalized_sse
 from src.utils.config import settings
-from src.black_sholes.model import normalized_sse, norm_cdf
 
 sb = settings.sabr
 
@@ -16,9 +17,14 @@ def _sabr_implied_vol(F, K, T, alpha, beta, rho, nu):
 
     one_minus_beta_sq = (1.0 - beta) * (1.0 - beta)
 
-    A = alpha / (FKpow * (
-        1.0 + (one_minus_beta_sq / 24.0) * lnFK2 + (one_minus_beta_sq * one_minus_beta_sq / 1920.0) * (lnFK2 * lnFK2)
-    ))
+    A = alpha / (
+        FKpow
+        * (
+            1.0
+            + (one_minus_beta_sq / 24.0) * lnFK2
+            + (one_minus_beta_sq * one_minus_beta_sq / 1920.0) * (lnFK2 * lnFK2)
+        )
+    )
 
     correction_T_atm = (
         (one_minus_beta_sq * alpha * alpha) / (24.0 * (Fpow * Fpow))
@@ -54,16 +60,16 @@ def _prices_for_sigma_matrix(sig_matrix, S, K, T, is_call, r=settings.ppl.risk_f
 
 
 def _compute_scores_for_params(alphas, rhos, nus, F, K, T, is_call, close, beta, max_chunk_elems=300_000_000):
-    M, cs = alphas.size, max(1, int((max_chunk_elems / F.size) ** (1.0/3.0)))
+    M, cs = alphas.size, max(1, int((max_chunk_elems / F.size) ** (1.0 / 3.0)))
     F_row, K_row, T_row = F[None, :], K[None, :], T[None, :]
-    scores = np.empty(M ** 3, dtype=float)
+    scores = np.empty(M**3, dtype=float)
     for i in range(0, M, cs):
         di = min(cs, M - i)
         for j in range(0, M, cs):
             dj = min(cs, M - j)
             for k in range(0, M, cs):
                 dk = min(cs, M - k)
-                A, R, N = np.meshgrid(alphas[i:i+di], rhos[j:j+dj], nus[k:k+dk], indexing='ij')
+                A, R, N = np.meshgrid(alphas[i : i + di], rhos[j : j + dj], nus[k : k + dk], indexing="ij")
                 alphas_flat, rhos_flat, nus_flat = A.ravel(), R.ravel(), N.ravel()
                 sig_matrix = _sabr_implied_vol(
                     F_row, K_row, T_row, alphas_flat[:, None], beta, rhos_flat[:, None], nus_flat[:, None]
@@ -87,11 +93,15 @@ class SABR:
 
     def price(self, df):
         S, K, T, is_call = df["underlying_price"].values, df["strike"].values, df["ttm"].values, df["is_call"].values
-        sigmas = _sabr_implied_vol(S[None, :], K[None, :], T[None, :],
-                                       np.atleast_1d(self.alpha)[:, None],
-                                       self.beta,
-                                       np.atleast_1d(self.rho)[:, None],
-                                       np.atleast_1d(self.nu)[:, None])[0, 0, 0]
+        sigmas = _sabr_implied_vol(
+            S[None, :],
+            K[None, :],
+            T[None, :],
+            np.atleast_1d(self.alpha)[:, None],
+            self.beta,
+            np.atleast_1d(self.rho)[:, None],
+            np.atleast_1d(self.nu)[:, None],
+        )[0, 0, 0]
         return _prices_for_sigma_matrix(sigmas[None, :], S, K, T, is_call)[0, 0, 0]
 
     def find_initial_params(self, df):
@@ -121,9 +131,9 @@ class SABR:
             r_width = (r_high - r_low) / sb.refine_factor
             n_width = (n_high - n_low) / sb.refine_factor
 
-            a_low, a_high = max(sb.alpha_min, best_alpha - a_width/2.0), min(sb.alpha_max, best_alpha + a_width/2.0)
-            r_low, r_high = max(sb.rho_min, best_rho - r_width/2.0), min(sb.rho_max, best_rho + r_width/2.0)
-            n_low, n_high = max(sb.nu_min, best_nu - n_width/2.0), min(sb.nu_max, best_nu + n_width/2.0)
+            a_low, a_high = max(sb.alpha_min, best_alpha - a_width / 2.0), min(sb.alpha_max, best_alpha + a_width / 2.0)
+            r_low, r_high = max(sb.rho_min, best_rho - r_width / 2.0), min(sb.rho_max, best_rho + r_width / 2.0)
+            n_low, n_high = max(sb.nu_min, best_nu - n_width / 2.0), min(sb.nu_max, best_nu + n_width / 2.0)
 
         self.alpha, self.rho, self.nu = best_alpha, best_rho, best_nu
 

@@ -1,36 +1,30 @@
 import pandas as pd
 from tqdm import tqdm
-from src.black_sholes.model import BlackScholes
-from src.sabr.model import SABR
-from src.utils.helpers import add_nan_columns
-from src.utils.config import settings, INPUTS_DIR, OUTPUTS_DIR
+
+from src.runners.bs.bs_calibration_accuracy_check import BlackSholesCalibrationAccuracyCheckRunner as Runner
+
+# from src.runners.bs.bs_initial_accuracy_check import BlackSholesInitialAccuracyCheckRunner as Runner
+from src.runners.bs.bs_finetuned import BlackSholesFinetunedRunner as Runner
+from src.utils.config import INPUTS_DIR, OUTPUTS_DIR, settings
 
 
 def run_pipeline():
     df = pd.read_csv(INPUTS_DIR / settings.ppl.input_csv).reset_index(drop=True)
     groups = [g for _, g in df.groupby("current_time")]
-    results, model_bs, model_sabr = [], None, None
+    results, runner = [], Runner()
+    runner.find_initial_params(groups[0])
 
-    with tqdm(total=max(0, len(groups) - 1), desc="Overall progress") as pbar:
-        for i in range(len(groups) - 1):
-            current, nxt = groups[i], add_nan_columns(groups[i + 1])
+    with tqdm(total=settings.ppl.total_hours - 1, desc="Overall progress") as pbar:
+        for i in range(settings.ppl.total_hours - 1):
+            current, nxt = groups[i], runner.add_nan_columns(groups[i + 1])
 
-            if model_bs is None:
-                model_bs = BlackScholes()
-                model_bs.find_initial_params(current)
-            else:
-                model_bs.calibrate(current)
-            nxt["close_bs"] = model_bs.price(nxt)
+            runner.calibrate(current)
 
-            # if model_sabr is None:
-            #     model_sabr = SABR()
-            #     model_sabr.find_initial_params(current)
-            # else:
-            #     model_sabr.calibrate(current)
-            # nxt["close_sabr"] = model_sabr.price(nxt)
-
-            results.append(nxt)
+            results.append(runner.price(nxt))
             pbar.update(1)
+
+    if settings.ppl.output_csv is None:
+        raise ValueError("output_csv must be set before running the pipeline")
 
     pd.concat(results).to_csv(OUTPUTS_DIR / settings.ppl.output_csv)
 

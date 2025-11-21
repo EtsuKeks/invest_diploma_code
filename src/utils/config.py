@@ -1,36 +1,38 @@
-from pydantic import BaseModel  # type: ignore
-from pathlib import Path
 import os
+from pathlib import Path
+from typing import Optional
 
-N_THREADS = "8"
+from pydantic import BaseModel  # type: ignore
 
-os.environ["VECLIB_MAXIMUM_THREADS"] = N_THREADS
-os.environ["OMP_NUM_THREADS"] = N_THREADS
-os.environ["OPENBLAS_NUM_THREADS"] = N_THREADS
-os.environ["MKL_NUM_THREADS"] = N_THREADS
+NTHREADS = str(8)
+
+os.environ["VECLIB_MAXIMUM_THREADS"] = NTHREADS
+os.environ["OMP_NUM_THREADS"] = NTHREADS
+os.environ["OPENBLAS_NUM_THREADS"] = NTHREADS
+os.environ["MKL_NUM_THREADS"] = NTHREADS
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-DATA_DIR = PROJECT_ROOT / "data"
-INPUTS_DIR = DATA_DIR / "inputs"
-OUTPUTS_DIR = DATA_DIR / "outputs"
+INPUTS_DIR = PROJECT_ROOT / "data" / "inputs"
+OUTPUTS_DIR = PROJECT_ROOT / "data" / "outputs"
 OUTPUTS_DIR.mkdir(exist_ok=True)
 
 
 class PipelineSettings(BaseModel):
     input_csv: str = "binance_dump_with_valid_volumes_arbitrage_free.csv"
-    output_csv: str = "bs-default_params.csv"
+    output_csv: Optional[str] = None
     risk_free_rate: float = 0.0
     epsilon: float = 1e-8
+    total_hours: int = 2683
 
 
 class BlackScholesSettings(BaseModel):
     refine_factor: int = 5
-    radius: float = 0.02
+    radius: float = 0.03
     radius_calibrate_factor: float = 2.0
     sigma_min: float = 0.001
-    sigma_max: float = 100.0
+    sigma_max: float = 10.0
     points_initial: int = 10000
-    points_calibrate: int = 1000
+    points_calibrate: int = 10000
     max_refines_initial: int = 100
     max_refines_calibrate: int = 10
 
