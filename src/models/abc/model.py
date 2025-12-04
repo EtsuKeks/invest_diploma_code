@@ -7,11 +7,11 @@ class Model(ABC):
 
     @abstractmethod
     def find_initial_params(
-            self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
-        ) -> None:
+        self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
+    ) -> None:
         """
         Performs the initial calibration of the model with initial interest rate r.
-        
+
         Parameters
         ----------
         S : Underlying Prices of shape (n,)
@@ -25,11 +25,11 @@ class Model(ABC):
 
     @abstractmethod
     def calibrate(
-            self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
-        ) -> None:
+        self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
+    ) -> None:
         """
         Calibrate model parameters with current interest rate r.
-        
+
         Parameters
         ----------
         S : Underlying Prices of shape (n,)
@@ -42,12 +42,10 @@ class Model(ABC):
         pass
 
     @abstractmethod
-    def price(
-            self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, r: float
-        ) -> np.ndarray:
+    def price(self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, r: float) -> np.ndarray:
         """
         Evaluates options with current interest rate r.
-        
+
         Parameters
         ----------
         S : Underlying Prices of shape (n,)

@@ -1,4 +1,5 @@
 from typing import List
+
 from src.models.abc.gridsearch_model import GSModelParamDetails, GSModelParams
 
 
@@ -36,9 +37,5 @@ class SABRSettings(GSModelParams):
     refine_factor_calibrate: float = 2.0
     max_refines_initial: int = 100
     max_refines_calibrate: int = 10
-    
-    params_details: List[GSModelParamDetails] = [
-        SabrAlphaSettings(), 
-        SabrRhoSettings(), 
-        SabrNuSettings()
-    ]
+
+    params_details: List[GSModelParamDetails] = [SabrAlphaSettings(), SabrRhoSettings(), SabrNuSettings()]

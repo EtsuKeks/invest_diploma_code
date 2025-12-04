@@ -8,7 +8,11 @@ from src.models.abc.model import Model
 
 def split_df(df: pd.DataFrame):
     return (
-        df["underlying_price"].values, df["strike"].values, df["ttm"].values, df["is_call"].values, df["close"].values
+        df["underlying_price"].values,
+        df["strike"].values,
+        df["ttm"].values,
+        df["is_call"].values,
+        df["close"].values,
     )
 
 

@@ -1,5 +1,6 @@
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 from src.models.abc.gridsearch_model import GridSearchModel, GSModelParams
 from src.models.black_sholes import prices_for_sigmas
@@ -12,15 +13,15 @@ def _sabr_implied_vol(
     T: np.ndarray,
     alpha: np.ndarray,
     beta: np.ndarray,
-    rho: float,
+    rho: np.ndarray,
     nu: np.ndarray,
-    r: float
+    r: float,
 ) -> np.ndarray:
     """
     Performs vectorized calculation of options' implied volatility used by SABR model. For details,
     please see https://www.researchgate.net/publication/235622441_Managing_Smile_Risk. Here we
     assume zero dividends as cryptocurrency does not provide it normally.
-    
+
     Parameters
     ----------
     S : Underlying Prices of shape (n,)
@@ -30,7 +31,7 @@ def _sabr_implied_vol(
     rho : Rho parameter of SABR model of shape(m,)
     nu : Nu parameter of SABR model of shape(m,)
     beta : Beta parameter of SABR model of shape(m,)
-    
+
     Returns an array of shape (m, n)
     """
     alpha_b, rho_b, nu_b = alpha[:, None], rho[:, None], nu[:, None]

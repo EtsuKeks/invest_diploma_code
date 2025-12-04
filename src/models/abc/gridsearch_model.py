@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 from pydantic import BaseModel
@@ -60,7 +60,7 @@ class GridSearchModel(Model, ABC):
 
     def __init__(self):
         # stores current best parameters as an array of shape (p,) in the same order as gs_params().params_details
-        self._params: Optional[np.ndarray] = None
+        self._params = np.ndarray()
 
     @abstractmethod
     def gs_params(self) -> GSModelParams:
@@ -129,40 +129,50 @@ class GridSearchModel(Model, ABC):
         return np.array(best_params)
 
     def find_initial_params(
-            self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
-        ) -> None:
+        self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
+    ) -> None:
         lows = np.array([p.min_value_initial for p in self.gs_params().params_details])
         highs = np.array([p.max_value_initial for p in self.gs_params().params_details])
         points = np.array([p.points_initial for p in self.gs_params().params_details])
 
         best = self._grid_refine(
-            S, K, T, is_call, close, r,
-            lows = lows,
-            highs = highs,
-            points = points,
-            refine_factor = self.gs_params().refine_factor_initial,
-            max_refines = self.gs_params().max_refines_initial,
-            min_bounds = lows,
-            max_bounds = highs,
+            S,
+            K,
+            T,
+            is_call,
+            close,
+            r,
+            lows=lows,
+            highs=highs,
+            points=points,
+            refine_factor=self.gs_params().refine_factor_initial,
+            max_refines=self.gs_params().max_refines_initial,
+            min_bounds=lows,
+            max_bounds=highs,
         )
         self._params = np.array(best)
 
     def calibrate(
-            self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
-        ) -> None:
+        self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
+    ) -> None:
         radius = np.array([p.radius_calibrate for p in self.gs_params().params_details])
         min_bounds = np.array([p.min_value_initial for p in self.gs_params().params_details])
         max_bounds = np.array([p.max_value_initial for p in self.gs_params().params_details])
 
         best = self._grid_refine(
-            S, K, T, is_call, close, r,
-            lows = np.maximum(min_bounds, self._params - radius),
-            highs = np.minimum(max_bounds, self._params + radius),
-            points = np.array([p.points_calibrate for p in self.gs_params().params_details]),
-            refine_factor = self.gs_params().refine_factor_calibrate,
-            max_refines = self.gs_params().max_refines_calibrate,
-            min_bounds = min_bounds,
-            max_bounds = max_bounds,
+            S,
+            K,
+            T,
+            is_call,
+            close,
+            r,
+            lows=np.maximum(min_bounds, self._params - radius),
+            highs=np.minimum(max_bounds, self._params + radius),
+            points=np.array([p.points_calibrate for p in self.gs_params().params_details]),
+            refine_factor=self.gs_params().refine_factor_calibrate,
+            max_refines=self.gs_params().max_refines_calibrate,
+            min_bounds=min_bounds,
+            max_bounds=max_bounds,
         )
         self._params = np.array(best)
 

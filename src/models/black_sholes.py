@@ -1,7 +1,8 @@
-import numpy as np
-from scipy.special import erf
 from math import sqrt
 from typing import Optional
+
+import numpy as np
+from scipy.special import erf
 
 from src.models.abc.gridsearch_model import GridSearchModel, GSModelParams
 from src.utils.config import settings
@@ -35,7 +36,7 @@ def prices_for_sigmas(S, K, T, is_call, sigmas, r):
 
     S_div_K = S_b / K_b
     S_div_K = S_div_K + np.where(S_div_K > 1, settings.ppl.epsilon, -settings.ppl.epsilon)
-    
+
     # Regardless of which shape was passed - (m, n) or (m,) - such broadcast would work just fine
     # Both d1, d2 are of shape (m, n)
     d1 = (np.log(S_div_K) + (r + 0.5 * (sigmas**2)) * T_b) / (sigmas * sqrtT)
@@ -59,6 +60,6 @@ class BlackScholes(GridSearchModel):
         return self.settings.bs
 
     def _prices_for_param_grid(
-            self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, param_matrix: np.ndarray, r: float
-        ) -> np.ndarray:
+        self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, param_matrix: np.ndarray, r: float
+    ) -> np.ndarray:
         return prices_for_sigmas(S, K, T, is_call, param_matrix[:, 0][:, None], r)

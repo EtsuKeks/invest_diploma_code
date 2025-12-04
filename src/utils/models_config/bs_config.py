@@ -1,5 +1,6 @@
-from src.models.abc.gridsearch_model import GSModelParamDetails, GSModelParams
 from typing import List
+
+from src.models.abc.gridsearch_model import GSModelParamDetails, GSModelParams
 
 
 class BlackSholesSigmaSettings(GSModelParamDetails):

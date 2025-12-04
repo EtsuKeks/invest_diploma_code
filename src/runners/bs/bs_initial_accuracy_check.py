@@ -3,11 +3,10 @@ from typing import Mapping
 import numpy as np
 import pandas as pd
 
-from src.models.black_sholes import BlackScholes
 from src.models.abc.model import Model
-from src.runners.runner import Runner
+from src.models.black_sholes import BlackScholes
+from src.runners.runner import Runner, split_df
 from src.utils.config import OUTPUTS_DIR, settings
-from src.runners.runner import split_df
 
 OUTPUT_CSV = "bs_initial_accuracy.csv"
 
