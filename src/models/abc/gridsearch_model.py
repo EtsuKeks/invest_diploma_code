@@ -5,7 +5,7 @@ import numpy as np
 from pydantic import BaseModel
 
 from src.models.abc.model import Model
-from src.utils.config import settings
+from src.utils.ppl_config import EPSILON
 
 
 def normalized_sse(close: np.ndarray, preds_matrix: np.ndarray) -> np.ndarray:
@@ -118,7 +118,7 @@ class GridSearchModel(Model, ABC):
             prices = self._prices_for_param_grid(S, K, T, is_call, param_matrix, r)
             scores = normalized_sse(close, prices)
             idx = int(np.argmin(scores))
-            if scores[idx] < best_score - settings.ppl.epsilon:
+            if scores[idx] < best_score - EPSILON:
                 best_score, best_params = scores[idx], param_matrix[idx]
                 widths = (highs - lows) / refine_factor
                 lows = np.maximum(min_bounds, best_params - widths / 2.0)

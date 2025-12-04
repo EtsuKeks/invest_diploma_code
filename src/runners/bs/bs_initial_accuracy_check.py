@@ -7,6 +7,7 @@ from src.models.black_sholes import BlackScholes
 from src.models.abc.model import Model
 from src.runners.runner import Runner
 from src.utils.config import OUTPUTS_DIR, settings
+from src.runners.runner import split_df
 
 OUTPUT_CSV = "bs_initial_accuracy.csv"
 
@@ -17,13 +18,13 @@ class BlackSholesInitialAccuracyCheckRunner(Runner):
         settings.ppl.total_hours = 100
 
         settings_accurate = settings.model_copy(deep=True)
-        settings_accurate.bs.refine_factor = 2
-        settings_accurate.bs.points_initial = 100000
+        settings_accurate.bs.refine_factor_initial = 2.0
         settings_accurate.bs.max_refines_initial = 1000
+        settings_accurate.bs.params_details[0].points_initial = 100000
 
         settings_inaccurate = settings.model_copy(deep=True)
-        settings_inaccurate.bs.refine_factor = 10
-        settings_inaccurate.bs.points_initial = 1000
+        settings_inaccurate.bs.refine_factor_initial = 10.0
+        settings_inaccurate.bs.params_details[0].points_initial = 1000
 
         self._running_pairs = {
             "sigma_default": BlackScholes(settings),
@@ -35,13 +36,14 @@ class BlackSholesInitialAccuracyCheckRunner(Runner):
     def running_pairs(self) -> Mapping[str, Model]:
         return self._running_pairs
 
-    def calibrate(self, df: pd.DataFrame) -> None:
-        self.find_initial_params(df)
+    def calibrate(self, df: pd.DataFrame, r: float) -> None:
+        self.find_initial_params(df, r)
 
-    def price(self, df):
+    def price(self, df: pd.DataFrame, r: float) -> pd.DataFrame:
+        S, K, T, is_call, _ = split_df(df)
         for tag, model in self._running_pairs.items():
-            df[tag] = model.sigma
-            df[tag.replace("sigma_", "close_")] = model.price(df)
+            df[tag] = model._params[0]
+            df[tag.replace("sigma_", "close_")] = model.price(S, K, T, is_call, r)
         return df
 
 

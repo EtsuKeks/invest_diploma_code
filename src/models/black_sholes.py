@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import erf
 from math import sqrt
+from typing import Optional
 
 from src.models.abc.gridsearch_model import GridSearchModel, GSModelParams
 from src.utils.config import settings
@@ -50,6 +51,8 @@ def prices_for_sigmas(S, K, T, is_call, sigmas, r):
 class BlackScholes(GridSearchModel):
     def __init__(self, settings):
         super().__init__()
+        # stores current best parameters as an array of shape (p,) in the same order as gs_params().params_details
+        self._params: Optional[np.ndarray] = None
         self.settings = settings
 
     def gs_params(self) -> GSModelParams:

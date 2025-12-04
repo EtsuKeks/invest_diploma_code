@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 
 from src.models.abc.gridsearch_model import GridSearchModel, GSModelParams
 from src.models.black_sholes import prices_for_sigmas
@@ -76,6 +77,8 @@ def _sabr_implied_vol(
 class SABR(GridSearchModel):
     def __init__(self, settings):
         super().__init__()
+        # stores current best parameters as an array of shape (p,) in the same order as gs_params().params_details
+        self._params: Optional[np.ndarray] = None
         self.settings = settings
         self.beta = settings.sabr.beta
 

@@ -6,6 +6,12 @@ import pandas as pd
 from src.models.abc.model import Model
 
 
+def split_df(df: pd.DataFrame):
+    return (
+        df["underlying_price"].values, df["strike"].values, df["ttm"].values, df["is_call"].values, df["close"].values
+    )
+
+
 class Runner(ABC):
     """
     Runner represents a concrete test case. When initialized, changes global settings
@@ -19,15 +25,18 @@ class Runner(ABC):
         """Return a mapping name -> Model."""
         raise NotImplementedError
 
-    def find_initial_params(self, df: pd.DataFrame) -> None:
+    def find_initial_params(self, df: pd.DataFrame, r: float) -> None:
+        S, K, T, is_call, close = split_df(df)
         for _, model in self.running_pairs.items():
-            model.find_initial_params(df)
+            model.find_initial_params(S, K, T, is_call, close, r)
 
-    def calibrate(self, df: pd.DataFrame) -> None:
+    def calibrate(self, df: pd.DataFrame, r: float) -> None:
+        S, K, T, is_call, close = split_df(df)
         for _, model in self.running_pairs.items():
-            model.calibrate(df)
+            model.calibrate(S, K, T, is_call, close, r)
 
-    def price(self, df: pd.DataFrame) -> pd.DataFrame:
+    def price(self, df: pd.DataFrame, r: float) -> pd.DataFrame:
+        S, K, T, is_call, _ = split_df(df)
         for tag, model in self.running_pairs.items():
-            df[tag] = model.price(df)
+            df[tag] = model.price(S, K, T, is_call, r)
         return df
