@@ -1,12 +1,9 @@
 import numpy as np
-
-from src.models.abc.gridsearch_model import (
-    GridSearchModel, GSModelParams
-)
-from src.utils.config import settings
-
 from scipy.special import erf
 from math import sqrt
+
+from src.models.abc.gridsearch_model import GridSearchModel, GSModelParams
+from src.utils.config import settings
 
 
 def norm_cdf(x):
@@ -14,7 +11,7 @@ def norm_cdf(x):
     return 0.5 * (1.0 + erf(x / sqrt(2.0)))
 
 
-def _prices_for_sigmas(S, K, T, is_call, sigmas, r):
+def prices_for_sigmas(S, K, T, is_call, sigmas, r):
     """
     Performs vectorized pricing via Black-Sholes analytical formula. For details,
     please see https://en.wikipedia.org/wiki/Black%E2%80%93Scholes_model. Here we
@@ -26,19 +23,22 @@ def _prices_for_sigmas(S, K, T, is_call, sigmas, r):
     K : Strikes of shape (n,)
     T : Time To Maturities of shape (n,)
     is_call : The option type flag - Put or Call of shape (n,)
-    sigmas : Sigmas under consideration of shape (m,)
+    sigmas : Volatilities of shape (m, n) - where each row repeats certain sigma n times when used
+        with Black-Sholes model or sets them independently if used in general case
     r : Current Interest Rate
 
     Returns an array where every row is a price vector predicted with Black-Sholes formula
     """
-    S_b, K_b, T_b, is_call_b, sig_b = S[None, :], K[None, :], T[None, :], is_call[None, :], sigmas[:, None]
+    S_b, K_b, T_b, is_call_b = S[None, :], K[None, :], T[None, :], is_call[None, :]
     sqrtT = np.sqrt(T_b)
 
     S_div_K = S_b / K_b
     S_div_K = S_div_K + np.where(S_div_K > 1, settings.ppl.epsilon, -settings.ppl.epsilon)
+    
+    # Regardless of which shape was passed - (m, n) or (m,) - such broadcast would work just fine
     # Both d1, d2 are of shape (m, n)
-    d1 = (np.log(S_div_K) + (r + 0.5 * (sig_b**2)) * T_b) / (sig_b * sqrtT)
-    d2 = d1 - sig_b * sqrtT
+    d1 = (np.log(S_div_K) + (r + 0.5 * (sigmas**2)) * T_b) / (sigmas * sqrtT)
+    d2 = d1 - sigmas * sqrtT
 
     Nd1, Nd2 = norm_cdf(d1) + settings.ppl.epsilon, norm_cdf(d2) + settings.ppl.epsilon
     Nnegd1, Nnegd2 = 1.0 - Nd1, 1.0 - Nd2
@@ -58,5 +58,4 @@ class BlackScholes(GridSearchModel):
     def _prices_for_param_grid(
             self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, param_matrix: np.ndarray, r: float
         ) -> np.ndarray:
-        sigmas = param_matrix[:, 0]
-        return _prices_for_sigmas(S, K, T, is_call, sigmas, r)
+        return prices_for_sigmas(S, K, T, is_call, param_matrix[:, 0][:, None], r)
