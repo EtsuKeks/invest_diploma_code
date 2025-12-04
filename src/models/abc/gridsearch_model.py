@@ -59,7 +59,7 @@ class GridSearchModel(Model, ABC):
     """Base class that implements a general incremental grid search for parameter calibration."""
 
     def __init__(self):
-        # stores current best parameters as a 1-d numpy array in the same order as gs_params().params_details
+        # stores current best parameters as an array of shape (p,) in the same order as gs_params().params_details
         self._params: Optional[np.ndarray] = None
 
     @abstractmethod
@@ -131,9 +131,9 @@ class GridSearchModel(Model, ABC):
     def find_initial_params(
             self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
         ) -> None:
-        lows = np.array([d.min_value_initial for d in self.gs_params().params_details])
-        highs = np.array([d.max_value_initial for d in self.gs_params().params_details])
-        points = np.array([d.points_initial for d in self.gs_params().params_details])
+        lows = np.array([p.min_value_initial for p in self.gs_params().params_details])
+        highs = np.array([p.max_value_initial for p in self.gs_params().params_details])
+        points = np.array([p.points_initial for p in self.gs_params().params_details])
 
         best = self._grid_refine(
             S, K, T, is_call, close, r,
@@ -150,15 +150,15 @@ class GridSearchModel(Model, ABC):
     def calibrate(
             self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
         ) -> None:
-        radius = np.array([d.radius_calibrate for d in self.gs_params().params_details])
-        min_bounds = np.array([d.min_value_initial for d in self.gs_params().params_details])
-        max_bounds = np.array([d.max_value_initial for d in self.gs_params().params_details])
+        radius = np.array([p.radius_calibrate for p in self.gs_params().params_details])
+        min_bounds = np.array([p.min_value_initial for p in self.gs_params().params_details])
+        max_bounds = np.array([p.max_value_initial for p in self.gs_params().params_details])
 
         best = self._grid_refine(
             S, K, T, is_call, close, r,
             lows = np.maximum(min_bounds, self._params - radius),
             highs = np.minimum(max_bounds, self._params + radius),
-            points = np.array([d.points_calibrate for d in self.gs_params().params_details]),
+            points = np.array([p.points_calibrate for p in self.gs_params().params_details]),
             refine_factor = self.gs_params().refine_factor_calibrate,
             max_refines = self.gs_params().max_refines_calibrate,
             min_bounds = min_bounds,
@@ -167,6 +167,4 @@ class GridSearchModel(Model, ABC):
         self._params = np.array(best)
 
     def price(self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, r: float) -> np.ndarray:
-        params_arr = self._params.reshape(1, -1)
-        prices = self._prices_for_param_grid(S, K, T, is_call, params_arr, r)
-        return prices[0]
+        return self._prices_for_param_grid(S, K, T, is_call, self._params.reshape(1, -1), r)[0]
