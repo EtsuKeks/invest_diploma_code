@@ -19,11 +19,13 @@ class BlackSholesCalibrationAccuracyCheckRunner(Runner):
         settings_accurate = settings.model_copy(deep=True)
         settings_accurate.bs.refine_factor_calibrate = 1.1
         settings_accurate.bs.max_refines_calibrate = 100
-        settings_accurate.bs.params_details[0].points_calibrate = 100000
+        settings_accurate.bs.params_details[0].radius_calibrate = 0.12
+        settings_accurate.bs.params_details[0].points_calibrate = 200000
 
         settings_inaccurate = settings.model_copy(deep=True)
         settings_inaccurate.bs.refine_factor_calibrate = 5.0
-        settings_inaccurate.bs.params_details[0].points_calibrate = 1000
+        settings_inaccurate.bs.params_details[0].radius_calibrate = 0.02
+        settings_inaccurate.bs.params_details[0].points_calibrate = 500
 
         self._running_pairs = {
             "sigma_default": BlackScholes(settings),

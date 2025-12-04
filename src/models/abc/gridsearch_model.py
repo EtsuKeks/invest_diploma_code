@@ -60,7 +60,7 @@ class GridSearchModel(Model, ABC):
 
     def __init__(self):
         # stores current best parameters as an array of shape (p,) in the same order as gs_params().params_details
-        self._params = np.ndarray()
+        self._params = None
 
     @abstractmethod
     def gs_params(self) -> GSModelParams:
@@ -158,6 +158,7 @@ class GridSearchModel(Model, ABC):
         radius = np.array([p.radius_calibrate for p in self.gs_params().params_details])
         min_bounds = np.array([p.min_value_initial for p in self.gs_params().params_details])
         max_bounds = np.array([p.max_value_initial for p in self.gs_params().params_details])
+        lows, highs = np.maximum(min_bounds, self._params - radius), np.minimum(max_bounds, self._params + radius)
 
         best = self._grid_refine(
             S,
@@ -166,13 +167,15 @@ class GridSearchModel(Model, ABC):
             is_call,
             close,
             r,
-            lows=np.maximum(min_bounds, self._params - radius),
-            highs=np.minimum(max_bounds, self._params + radius),
+            lows=lows,
+            highs=highs,
             points=np.array([p.points_calibrate for p in self.gs_params().params_details]),
             refine_factor=self.gs_params().refine_factor_calibrate,
             max_refines=self.gs_params().max_refines_calibrate,
-            min_bounds=min_bounds,
-            max_bounds=max_bounds,
+            # Pass min_bounds=lows, max_bounds=highs as is believed that sufficient radius peaked,
+            # thus no need in lossing accuracy
+            min_bounds=lows,
+            max_bounds=highs,
         )
         self._params = np.array(best)
 

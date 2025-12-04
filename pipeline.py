@@ -1,9 +1,9 @@
 import pandas as pd
 from tqdm import tqdm
 
-from src.runners.bs.bs_finetuned import BlackSholesFinetunedRunner as Runner
+from src.runners.bs.bs_calibration_accuracy_check import BlackSholesCalibrationAccuracyCheckRunner as Runner
 
-# from src.runners.bs.bs_calibration_accuracy_check import BlackSholesCalibrationAccuracyCheckRunner as Runner
+# from src.runners.bs.bs_finetuned import BlackSholesFinetunedRunner as Runner
 # from src.runners.bs.bs_initial_accuracy_check import BlackSholesInitialAccuracyCheckRunner as Runner
 from src.utils.config import INPUTS_DIR, OUTPUTS_DIR, settings
 

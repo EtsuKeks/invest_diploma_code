@@ -17,12 +17,12 @@ class BlackSholesInitialAccuracyCheckRunner(Runner):
         settings.ppl.total_hours = 100
 
         settings_accurate = settings.model_copy(deep=True)
-        settings_accurate.bs.refine_factor_initial = 2.0
+        settings_accurate.bs.refine_factor_initial = 1.1
         settings_accurate.bs.max_refines_initial = 1000
         settings_accurate.bs.params_details[0].points_initial = 100000
 
         settings_inaccurate = settings.model_copy(deep=True)
-        settings_inaccurate.bs.refine_factor_initial = 10.0
+        settings_inaccurate.bs.refine_factor_initial = 5.0
         settings_inaccurate.bs.params_details[0].points_initial = 1000
 
         self._running_pairs = {
