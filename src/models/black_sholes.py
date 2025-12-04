@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy.special import erf
 
-from src.models.model import Model
+from src.models.abc.model import Model
 from src.utils.config import settings
 
 
@@ -37,7 +37,7 @@ def normalized_sse(close, preds_matrix):
     return np.sum(diffs * diffs, axis=1) / np.sum(close * close)
 
 
-def _prices_for_sigmas(S, K, T, is_call, sigmas, r=settings.ppl.risk_free_rate):
+def _prices_for_sigmas(S, K, T, is_call, sigmas, r):
     """
     Performs vectorized pricing via Black-Sholes analytical formula. For details,
     please see https://en.wikipedia.org/wiki/Black%E2%80%93Scholes_model. Here we
@@ -79,7 +79,7 @@ def _prices_for_sigmas(S, K, T, is_call, sigmas, r=settings.ppl.risk_free_rate):
     return np.where(is_call_b, call, put)
 
 
-def _compute_scores_for_sigmas(S, K, T, is_call, close, sigmas, max_chunk_elems=300_000_000):
+def _compute_scores_for_sigmas(S, K, T, is_call, close, sigmas, r, max_chunk_elems=300_000_000):
     """
     Calls _prices_for_sigmas subsequently in chunks, guarantying n * m < max_chunk_elems.
 
@@ -107,7 +107,7 @@ def _compute_scores_for_sigmas(S, K, T, is_call, close, sigmas, max_chunk_elems=
     scores = np.empty(m)
     for start in range(0, m, m_chunk):
         stop = min(m, start + m_chunk)
-        prices = _prices_for_sigmas(S, K, T, is_call, sigmas[start:stop])
+        prices = _prices_for_sigmas(S, K, T, is_call, sigmas[start:stop], r)
         scores_chunk = normalized_sse(close, prices)
         scores[start:stop] = scores_chunk
 
@@ -118,20 +118,16 @@ class BlackScholes(Model):
     def __init__(self, settings):
         self.bs, self.sigma = settings.bs, None
 
-    def price(self, df: pd.DataFrame) -> np.ndarray:
-        S, K, T, is_call = df["underlying_price"].values, df["strike"].values, df["ttm"].values, df["is_call"].values
-        return _prices_for_sigmas(S, K, T, is_call, np.atleast_1d(self.sigma))[0]
+    def price(self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, r: float) -> np.ndarray:
+        return _prices_for_sigmas(S, K, T, is_call, np.atleast_1d(self.sigma), r)[0]
 
-    def find_initial_params(self, df: pd.DataFrame) -> None:
-        S, K, T = df["underlying_price"].values, df["strike"].values, df["ttm"].values
-        is_call, close = df["is_call"].values, df["close"].values
-
+    def find_initial_params(self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float) -> None:
         low, high = self.bs.sigma_min, self.bs.sigma_max
         best_sigma, best_score = None, float("inf")
 
         for _ in range(self.bs.max_refines_initial):
             sigmas = np.linspace(low, high, self.bs.points_initial)
-            scores = _compute_scores_for_sigmas(S, K, T, is_call, close, sigmas)
+            scores = _compute_scores_for_sigmas(S, K, T, is_call, close, sigmas, r)
             idx = np.argmin(scores)
             if scores[idx] < best_score - settings.ppl.epsilon:
                 best_score, best_sigma = scores[idx], sigmas[idx]
@@ -144,12 +140,9 @@ class BlackScholes(Model):
 
         self.sigma = best_sigma
 
-    def calibrate(self, df: pd.DataFrame) -> None:
-        S, K, T = df["underlying_price"].values, df["strike"].values, df["ttm"].values
-        is_call, close = df["is_call"].values, df["close"].values
-
+    def calibrate(self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float) -> None:
         best_sigma = self.sigma
-        prices = _prices_for_sigmas(S, K, T, is_call, np.atleast_1d(self.sigma))
+        prices = _prices_for_sigmas(S, K, T, is_call, np.atleast_1d(self.sigma), r)
         best_score = float(normalized_sse(close, prices))
         radius, points = self.bs.radius, self.bs.points_calibrate
 

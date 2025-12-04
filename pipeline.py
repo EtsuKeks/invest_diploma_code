@@ -1,10 +1,10 @@
 import pandas as pd
 from tqdm import tqdm
 
-from src.runners.bs.bs_initial_accuracy_check import BlackSholesInitialAccuracyCheckRunner as Runner
+from src.runners.bs.bs_finetuned import BlackSholesFinetunedRunner as Runner
 
 # from src.runners.bs.bs_calibration_accuracy_check import BlackSholesCalibrationAccuracyCheckRunner as Runner
-# from src.runners.bs.bs_finetuned import BlackSholesFinetunedRunner as Runner
+# from src.runners.bs.bs_initial_accuracy_check import BlackSholesInitialAccuracyCheckRunner as Runner
 from src.utils.config import INPUTS_DIR, OUTPUTS_DIR, settings
 
 
@@ -16,7 +16,7 @@ def run_pipeline():
 
     with tqdm(total=settings.ppl.total_hours - 1, desc="Overall progress") as pbar:
         for i in range(settings.ppl.total_hours - 1):
-            current, nxt = groups[i], runner.add_nan_columns(groups[i + 1])
+            current, nxt = groups[i], groups[i + 1]
 
             runner.calibrate(current)
 

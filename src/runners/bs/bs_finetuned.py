@@ -3,7 +3,7 @@ from typing import Mapping
 import pandas as pd
 
 from src.models.black_sholes import BlackScholes
-from src.models.model import Model
+from src.models.abc.model import Model
 from src.runners.runner import Runner
 from src.utils.config import OUTPUTS_DIR, settings
 

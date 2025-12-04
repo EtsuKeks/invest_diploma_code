@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Mapping
 
-import numpy as np
 import pandas as pd
 
-from src.models.model import Model
+from src.models.abc.model import Model
 
 
 class Runner(ABC):
@@ -19,11 +18,6 @@ class Runner(ABC):
     def running_pairs(self) -> Mapping[str, Model]:
         """Return a mapping name -> Model."""
         raise NotImplementedError
-
-    def add_nan_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        for tag, _ in self.running_pairs.items():
-            df[tag] = np.nan
-        return df
 
     def find_initial_params(self, df: pd.DataFrame) -> None:
         for _, model in self.running_pairs.items():
