@@ -183,3 +183,15 @@ class SABR(GridSearchModel):
         sigmas = _sabr_implied_vol(S_b, K_b, T_b, alpha, self.beta, rho, nu, r)
         prices = prices_for_sigmas(sigmas, S_b, K_b, T_b, is_call_b, r)
         return prices
+
+    def find_initial_params(
+        self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
+    ) -> None:
+        self.calibrate_spot_cautious_params(S, K, T, is_call, close, r)
+        super().find_initial_params(S, K, T, is_call, close, r)
+
+    def calibrate(
+        self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, close: np.ndarray, r: float
+    ) -> None:
+        self.calibrate_spot_cautious_params(S, K, T, is_call, close, r)
+        super().calibrate(S, K, T, is_call, close, r)
