@@ -4,7 +4,6 @@ from typing import Mapping
 import pandas as pd
 
 from src.models.abc.model import Model
-from src.models.abc.spot_cautious_model import SpotCautiousModel
 
 
 def split_df(df: pd.DataFrame):
@@ -30,20 +29,14 @@ class Runner(ABC):
         """Return a mapping name -> Model."""
         raise NotImplementedError
 
-    def find_initial_params(self, df: pd.DataFrame, spot_details: pd.DataFrame, r: float) -> None:
+    def find_initial_params(self, df: pd.DataFrame, r: float) -> None:
         S, K, T, is_call, close = split_df(df)
         for _, model in self.running_pairs.items():
-            if isinstance(model, SpotCautiousModel):
-                model.calibrate_spot_cautious_params(spot_details["underlying_price"].values, r)
-
             model.find_initial_params(S, K, T, is_call, close, r)
 
-    def calibrate(self, df: pd.DataFrame, spot_details: pd.DataFrame, r: float) -> None:
+    def calibrate(self, df: pd.DataFrame, r: float) -> None:
         S, K, T, is_call, close = split_df(df)
         for _, model in self.running_pairs.items():
-            if isinstance(model, SpotCautiousModel):
-                model.calibrate_spot_cautious_params(spot_details["underlying_price"].values, r)
-
             model.calibrate(S, K, T, is_call, close, r)
 
     def price(self, df: pd.DataFrame, r: float) -> pd.DataFrame:

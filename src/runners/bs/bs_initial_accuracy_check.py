@@ -35,8 +35,8 @@ class BlackSholesInitialAccuracyCheckRunner(Runner):
     def running_pairs(self) -> Mapping[str, Model]:
         return self._running_pairs
 
-    def calibrate(self, df: pd.DataFrame, spot_details: pd.DataFrame, r: float) -> None:
-        self.find_initial_params(df, spot_details, r)
+    def calibrate(self, df: pd.DataFrame, r: float) -> None:
+        self.find_initial_params(df, r)
 
     def price(self, df: pd.DataFrame, r: float) -> pd.DataFrame:
         S, K, T, is_call, _ = split_df(df)
