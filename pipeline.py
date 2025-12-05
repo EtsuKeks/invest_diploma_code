@@ -22,8 +22,10 @@ def prepare_spot_groups(spot_data, df) -> list[np.ndarray]:
 def run_pipeline():
     df = pd.read_csv(INPUTS_DIR / settings.ppl.input_csv).reset_index(drop=True)
     if not (INPUTS_DIR / settings.ppl.spot_npy).is_file():
-        raise ValueError("""spot_npy is abscent - probably, parse_spot.ipynb wasnt used, check
-                         notebooks/parse_spot.ipynb for details""")
+        raise ValueError(
+            """spot_npy is abscent - probably, parse_spot.ipynb wasnt used, check
+                         notebooks/parse_spot.ipynb for details"""
+        )
 
     spot_full = np.load(INPUTS_DIR / settings.ppl.spot_npy)
     groups, spot_groups = [g for _, g in df.groupby("current_time")], prepare_spot_groups(spot_full, df)
