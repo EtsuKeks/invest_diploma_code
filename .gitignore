@@ -6,4 +6,5 @@
 .vscode
 lint.sh
 pyproject.toml
-data/outputs/
+data/outputs/**.csv
+data/inputs/spot_full.csv

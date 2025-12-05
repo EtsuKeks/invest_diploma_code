@@ -21,7 +21,7 @@ class Model(ABC):
         close : Actual Close prices of shape (n,)
         r : Current Interest Rate
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def calibrate(
@@ -39,7 +39,7 @@ class Model(ABC):
         close : Actual Close prices of shape (n,)
         r : Current Interest Rate
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def price(self, S: np.ndarray, K: np.ndarray, T: np.ndarray, is_call: np.ndarray, r: float) -> np.ndarray:
@@ -56,4 +56,4 @@ class Model(ABC):
 
         Returns an array of shape (n,) with prices predicted by a model
         """
-        pass
+        raise NotImplementedError

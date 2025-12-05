@@ -17,7 +17,6 @@ os.environ["MKL_NUM_THREADS"] = NTHREADS
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 INPUTS_DIR = PROJECT_ROOT / "data" / "inputs"
 OUTPUTS_DIR = PROJECT_ROOT / "data" / "outputs"
-OUTPUTS_DIR.mkdir(exist_ok=True)
 
 
 class GlobalSettings(BaseModel):

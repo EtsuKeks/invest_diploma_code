@@ -3,6 +3,7 @@ from typing import Optional
 import numpy as np
 
 from src.models.abc.gridsearch_model import GridSearchModel, GSModelParams
+from src.models.abc.spot_cautious_model import SpotCautiousModel
 from src.models.black_sholes import prices_for_sigmas
 from src.utils.config import settings
 
@@ -75,13 +76,16 @@ def _sabr_implied_vol(
     return np.where(F_eq_K_mask, sigma_atm, A * ratio * (1.0 + correction_T * T_b))
 
 
-class SABR(GridSearchModel):
+class SABR(GridSearchModel, SpotCautiousModel):
     def __init__(self, settings):
         super().__init__()
         # stores current best parameters as an array of shape (p,) in the same order as gs_params().params_details
         self._params: Optional[np.ndarray] = None
         self.settings = settings
         self.beta = settings.sabr.beta
+
+    def calibrate_spot_cautious_params(self, S: np.ndarray, r: float) -> None:
+        raise NotImplementedError
 
     def gs_params(self) -> GSModelParams:
         return self.settings.sabr
